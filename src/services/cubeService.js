@@ -1,48 +1,21 @@
-const uniqid = require("uniqid");
+const Cube = require("../models/Cube");
 
-const cubes = [
-  {
-    id: uniqid(),
-    name: "Rubik's Cube",
-    description:
-      "A Rubik's Cube is a famous 3D puzzle of colorful cubes, challenging your mind and dexterity to align all sides in one color.",
-    imageUrl:
-      "https://5.imimg.com/data5/WI/DO/HV/SELLER-31836682/shengshou-moyo-magic-rubik-cube-3x3-puzzle-educational-toy-500x500-500x500.jpg",
-    difficultyLevel: "3",
-  },
-  {
-    id: uniqid(),
-    name: "Moyu King Kong ",
-    description:
-      "Moyu King Kong: The ultimate speed-solving Rubik's Cube for enthusiasts, renowned for its precision and lightning-fast solves.",
-    imageUrl:
-      "https://kendamabulgaria.bg/wp-content/uploads/2021/04/yong_jun_puzzles_3209_1.jpg",
-    difficultyLevel: 6,
-  },
-  {
-    id: uniqid(),
-    name: "Skewb",
-    description:
-      "The Skewb is a mind-bending geometric puzzle with a cube-like shape and irregular rotations, requiring you to align its colors for a solution.",
-    imageUrl: "https://static.cubing.co/blog/2020/12/Odd-shaped-twisty.jpg",
-    difficultyLevel: 4,
-  },
-];
+const cubes = [];
 
-exports.create = (cubeData) => {
-  const newCube = {
-    id: uniqid(),
-    ...cubeData,
-  };
+exports.create = async (cubeData) => {
+  // const cube = new Cube(cubeData)
+  //await cube.save()
+  const cube = await Cube.create(cubeData);
 
-  cubes.push(newCube);
-  return newCube;
+  return cube;
 };
 
-exports.getAll = (search, from, to) => {
-  let filteredCubes = [...cubes];
+exports.getAll = async (search, from, to) => {
+  let filteredCubes = Cube.find().lean();
+
+  // TODO: Filter with mongoose
   if (search) {
-    filteredCubes = filteredCubes.filter((cube) =>
+    filteredCubes = await filteredCubes.filter((cube) =>
       cube.name.toLowerCase().includes(search.toLowerCase())
     );
   }
@@ -60,6 +33,14 @@ exports.getAll = (search, from, to) => {
   return filteredCubes;
 };
 
-exports.getSingleCube = (id) => {
-  return cubes.find((cube) => cube.id === id);
+exports.getSingleCube = (id) => Cube.findById(id).populate("accessories");
+
+exports.attachAccessory = async (cubeId, accessoryId) => {
+  // return Cube.findByIdAndUpdate(cubeId, {
+  //   $push: { accessories: accessoryId },
+  // });
+
+  const cube = await this.getSingleCube(cubeId);
+  cube.accessories.push(accessoryId);
+  return cube.save();
 };
